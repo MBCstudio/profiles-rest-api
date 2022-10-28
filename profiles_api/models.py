@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 
-class UserProfileManager(AbstractBaseUser):
+class UserProfileManager(BaseUserManager):
     """docstring fo UserProfileManager."""
 
     def create_user(self, name, email, password=None):
@@ -10,30 +11,29 @@ class UserProfileManager(AbstractBaseUser):
         if not email:
             raise ValueError("Użytkownik musi posiadać email")
 
-        email = self.nozmalize_email(email)
-        user = self.model(email=emali, name=name)
+        email = self.normalize_email(email)
+        user = self.model(email=email, name=name)
 
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, name, emali, password=None):
-        """Funkcja tworzaca superurzytkowanika"""
-        user = create_user(name,emali,password)
+    def create_superuser(self, name, email, password=None):
+        """Funkcja tworzaca superużytkowanika"""
+        user = self.create_user(name,email,password)
 
         user.is_superuser = True
-        user.is_admin = True
+        user.is_staff = True
         user.save(using=self._db)
 
         return user
-
 
 class UserProfile(AbstractBaseUser, PermissionsMixin):
     """docstring for UserProfile."""
     email = models.EmailField(max_length=255, unique=True)
     name = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
-    is_admin = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)
 
     objects = UserProfileManager()
 
